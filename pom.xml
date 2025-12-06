@@ -33,7 +33,6 @@
     </properties>
     
     <dependencies>
-        <!-- All your existing dependencies stay the same -->
         <!-- Spring Framework -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -261,7 +260,7 @@
                 <version>3.2.5</version>
             </plugin>
             
-            <!-- ✅ JaCoCo for coverage (UNCOMMENTED) -->
+            <!-- ✅ JaCoCo for coverage -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>

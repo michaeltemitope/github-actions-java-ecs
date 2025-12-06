@@ -4,10 +4,16 @@
     "https://checkstyle.org/dtds/configuration_1_3.dtd">
 
 <module name="Checker">
-    <module name="TreeWalker">
-        <module name="JavadocMethod"/>
-        <module name="JavadocType"/>
-        <module name="JavadocVariable"/>
-        <module name="JavadocStyle"/>
-    </module>
+  <!-- This check must be directly under Checker -->
+  <module name="FileTabCharacter"/>
+
+  <module name="TreeWalker">
+    <!-- These belong inside TreeWalker -->
+    <module name="Indentation"/>
+    <module name="WhitespaceAround"/>
+    <module name="NoWhitespaceBefore"/>
+    <module name="NeedBraces"/>
+    <module name="AvoidStarImport"/>
+    <module name="UnusedImports"/>
+  </module>
 </module>
