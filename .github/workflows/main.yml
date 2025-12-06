@@ -177,3 +177,5 @@ jobs:
           -Dsonar.junit.reportPaths=target/surefire-reports \
           -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
           -Dsonar.externalRules.checkstyle.reportPaths=target/checkstyle-result.xml
+  
+  
