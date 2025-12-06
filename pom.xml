@@ -32,6 +32,15 @@
 
     <build>
         <plugins>
+            <!-- ✅ WAR plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
             <!-- ✅ Surefire for running tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
