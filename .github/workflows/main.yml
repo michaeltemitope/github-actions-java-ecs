@@ -26,7 +26,6 @@ jobs:
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
-        
 
       - name: Set Up JDK 17
         uses: actions/setup-java@v5
@@ -55,7 +54,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        
 
       - uses: actions/setup-java@v5
         with:
@@ -87,7 +85,7 @@ jobs:
           name: junit-results
           path: target/surefire-reports/
           retention-days: 7
-
+          if-no-files-found: ignore
 
   # -----------------------------------------------------
   # 3. CHECKSTYLE JOB
@@ -107,7 +105,7 @@ jobs:
           cache: 'maven'
 
       - name: Run Checkstyle
-        run: mvn checkstyle:check || true
+        run: mvn checkstyle:checkstyle || true
 
       - name: Upload Checkstyle Report
         uses: actions/upload-artifact@v4
@@ -117,17 +115,16 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-
   # -----------------------------------------------------
-  # 4. SONARCLOUD SCAN
+  # 4. SONARCLOUD SCAN WITH QUALITY GATE
   # -----------------------------------------------------
   sonar:
-    name: SonarCloud Static Code Analysis
+    name: SonarCloud Analysis & Quality Gate
     environment: CI/CD
     permissions:
-     contents: read
-     pull-requests: write
-     checks: write
+      contents: read
+      pull-requests: write
+      checks: write
     needs: 
       - checkstyle
       - unit-tests
@@ -137,6 +134,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          
       - uses: actions/setup-java@v5
         with:
           java-version: '17'
@@ -169,7 +167,8 @@ jobs:
           path: target/
         continue-on-error: true
       
-      - name: Sonar scan
+      - name: SonarCloud Scan with Quality Gate
+        id: sonar-scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -179,6 +178,51 @@ jobs:
           -Dsonar.java.binaries=target/classes \
           -Dsonar.junit.reportPaths=target/surefire-reports \
           -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-          -Dsonar.externalRules.checkstyle.reportPaths=target/checkstyle-result.xml
-  
-  
+          -Dsonar.externalRules.checkstyle.reportPaths=target/checkstyle-result.xml \
+          -Dsonar.qualitygate.wait=true \
+          -Dsonar.qualitygate.timeout=300
+        continue-on-error: true
+
+      - name: Check Quality Gate Result
+        id: qg-result
+        run: |
+          if [ "${{ steps.sonar-scan.outcome }}" == "failure" ]; then
+            echo "status=failed" >> $GITHUB_OUTPUT
+            echo "color=danger" >> $GITHUB_OUTPUT
+            echo "emoji=🔴" >> $GITHUB_OUTPUT
+          else
+            echo "status=passed" >> $GITHUB_OUTPUT
+            echo "color=good" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify Slack on Quality Gate Failure
+        if: steps.sonar-scan.outcome == 'failure'
+        run: |
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+          -H 'Content-Type: application/json' \
+          -d '{
+            "text": "🔴 Quality Gate FAILED",
+            "attachments": [{
+              "color": "danger",
+              "title": "Quality Gate Failed - Action Required",
+              "fields": [
+                {"title": "Repository", "value": "${{ github.repository }}", "short": true},
+                {"title": "Branch", "value": "${{ github.ref_name }}", "short": true},
+                {"title": "Author", "value": "${{ github.actor }}", "short": true},
+                {"title": "Commit", "value": "`${{ github.sha }}`", "short": true}
+              ],
+              "actions": [
+                {
+                  "type": "button",
+                  "text": "View SonarCloud Report",
+                  "url": "https://sonarcloud.io/dashboard?id=michaeltemitope_github-actions-java-ecs"
+                },
+                {
+                  "type": "button",
+                  "text": "View Workflow Run",
+                  "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                }
+              ]
+            }]
+          }'
