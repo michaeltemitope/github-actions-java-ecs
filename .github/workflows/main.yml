@@ -153,18 +153,21 @@ jobs:
         with:
           name: jacoco-report
           path: target/site/jacoco/
+        continue-on-error: true
 
       - name: Download JUnit Reports
         uses: actions/download-artifact@v4
         with:
           name: junit-results
           path: target/surefire-reports/
+        continue-on-error: true
 
       - name: Download Checkstyle Report
         uses: actions/download-artifact@v4
         with:
           name: checkstyle-report
           path: target/
+        continue-on-error: true
       
       - name: Sonar scan
         env:
