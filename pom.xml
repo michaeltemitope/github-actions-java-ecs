@@ -16,7 +16,7 @@
 
         <!-- ✅ SonarCloud properties added here -->
         <sonar.organization>ops-by-temitope</sonar.organization>
-        <sonar.projectKey>ops-by-temitope</sonar.projectKey>
+        <sonar.projectKey>ops-by-temitope_java-ecs</sonar.projectKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
